@@ -327,12 +327,14 @@ func (dir *Dir) removeOneFile(req *fuse.RemoveRequest) error {
 
 func (dir *Dir) removeFolder(req *fuse.RemoveRequest) error {
 
+	v := util.GetViper()
+	isRecursive := v.GetBool("filer.options.recursive_delete")
 	t := util.NewFullPath(dir.FullPath(), req.Name)
 
 	dir.wfs.metaCache.DeleteEntry(context.Background(), t)
 
 	glog.V(3).Infof("remove directory entry: %v", req)
-	err := filer_pb.Remove(dir.wfs, dir.FullPath(), req.Name, true, false, false, false)
+	err := filer_pb.Remove(dir.wfs, dir.FullPath(), req.Name, true, isRecursive, false, false)
 	if err != nil {
 		glog.V(3).Infof("not found remove %s/%s: %v", dir.FullPath(), req.Name, err)
 		return fuse.ENOENT
